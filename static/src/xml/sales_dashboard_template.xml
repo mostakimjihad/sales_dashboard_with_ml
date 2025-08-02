@@ -1,0 +1,583 @@
+<templates xml:space="preserve">
+    <t t-name="sales_dashboard.client" owl="1">
+        <style>
+        /* Modern Dashboard Styles with Fixed Scrolling */
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --accent: #4895ef;
+            --dark: #1b263b;
+            --light: #f8f9fa;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #560bad;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #d8dee6 0%, #c8d0da 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .sales-dashboard-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Enhanced geometric background pattern */
+        .dashboard-bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background:
+                linear-gradient(135deg, rgba(67, 97, 238, 0.05) 0%, transparent 50%),
+                linear-gradient(-135deg, rgba(72, 149, 239, 0.05) 0%, transparent 50%),
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.1),
+                    rgba(255, 255, 255, 0.1) 1px,
+                    transparent 1px,
+                    transparent 10px
+                ),
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(255, 255, 255, 0.1),
+                    rgba(255, 255, 255, 0.1) 1px,
+                    transparent 1px,
+                    transparent 10px
+                );
+            opacity: 0.6;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2.5rem 2rem;
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 30%, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 70%);
+            z-index: -1;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header-titles h1 {
+            font-size: 2.3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, rgba(255,255,255,1), rgba(255,255,255,0.85));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .header-titles p {
+            font-size: 1.1rem;
+            opacity: 0.92;
+            margin-bottom: 0;
+            font-weight: 400;
+            max-width: 600px;
+            line-height: 1.6;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .dashboard-content {
+            flex: 1;
+            padding: 3rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+            overflow-y: auto;
+            height: calc(100vh - 180px); /* Adjusted for header height */
+        }
+
+        /* Rest of your CSS remains exactly the same */
+        .kpi-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.8rem;
+            margin-bottom: 3rem;
+        }
+
+        .kpi-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            padding: 1.8rem 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.08);
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(31, 38, 135, 0.15);
+        }
+
+        .kpi-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 6px;
+            height: 100%;
+            background: linear-gradient(to bottom, var(--primary), var(--accent));
+        }
+
+        .kpi-card.sales::before { background: linear-gradient(to bottom, #4361ee, #4895ef); }
+        .kpi-card.target::before { background: linear-gradient(to bottom, #4cc9f0, #3a86ff); }
+        .kpi-card.leads::before { background: linear-gradient(to bottom, #f72585, #b5179e); }
+        .kpi-card.conversion::before { background: linear-gradient(to bottom, #560bad, #7209b7); }
+
+        .kpi-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #5a6268;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            letter-spacing: -0.5px;
+        }
+
+        .kpi-change {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .kpi-change.positive {
+            color: #27ae60;
+        }
+
+        .kpi-change.negative {
+            color: #e74c3c;
+        }
+
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            opacity: 0.12;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .kpi-icon i {
+            font-size: 1.8rem;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            padding-bottom: 2rem;
+        }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.08);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(31, 38, 135, 0.15);
+        }
+
+        .card-forecast {
+            grid-column: 1 / -1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 1.8rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .card-header-actions {
+            display: flex;
+            gap: 0.7rem;
+        }
+
+        .badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: white;
+        }
+
+        .bg-primary { background: var(--primary); }
+        .bg-success { background: var(--success); }
+        .bg-info { background: var(--info); }
+        .bg-warning { background: var(--warning); }
+        .bg-danger { background: var(--danger); }
+        .bg-secondary { background: #6c757d; }
+
+        .card-body {
+            padding: 1.8rem;
+            height: 320px;
+            min-height: 320px;
+        }
+
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 5px solid rgba(67, 97, 238, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 1.5rem;
+        }
+
+        .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 70vh;
+            padding: 2rem;
+            text-align: center;
+            color: var(--danger);
+        }
+
+        .error-icon {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--danger);
+        }
+
+        .refresh-btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.7rem 1.8rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 97, 238, 0.25);
+        }
+
+        .refresh-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(67, 97, 238, 0.35);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-forecast {
+                grid-column: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1.5rem;
+            }
+
+            .kpi-container {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .dashboard-header {
+                padding: 2rem 1.5rem;
+            }
+
+            .dashboard-content {
+                padding: 2rem 1.5rem;
+                height: calc(100vh - 160px); /* Adjusted for smaller header */
+            }
+
+            .header-titles h1 {
+                font-size: 2rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .kpi-container {
+                grid-template-columns: 1fr;
+            }
+
+            .dashboard-content {
+                padding: 1.5rem 1rem;
+                height: calc(100vh - 140px); /* Adjusted for smallest header */
+            }
+
+            .kpi-card {
+                padding: 1.5rem;
+            }
+
+            .kpi-value {
+                font-size: 1.8rem;
+            }
+
+            .header-titles h1 {
+                font-size: 1.8rem;
+            }
+
+            .header-titles p {
+                font-size: 1rem;
+            }
+
+            .refresh-btn {
+                padding: 0.6rem 1.5rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+        <div class="dashboard-bg-pattern"></div>
+
+        <div class="sales-dashboard-container">
+            <div class="dashboard-header">
+                <div class="header-content">
+                    <div class="header-titles">
+                        <h1>Sales Performance Dashboard</h1>
+                        <p>Real-time insights and analytics to drive your sales strategy forward. Track performance, identify opportunities, and optimize your sales pipeline.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="refresh-btn" t-on-click="loadDataAndRenderCharts">
+                            <i class="bi bi-arrow-clockwise"/> Refresh Data
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="dashboard-content">
+                <t t-if="state.loading">
+                    <div class="loading-state">
+                        <div class="loading-spinner"/>
+                        <h3>Loading Dashboard Data</h3>
+                        <p>Preparing your sales insights...</p>
+                    </div>
+                </t>
+                <t t-elif="state.error">
+                    <div class="error-state">
+                        <i class="bi bi-exclamation-triangle-fill error-icon"/>
+                        <h3>Error Loading Dashboard</h3>
+                        <p t-esc="state.error"/>
+                        <button class="refresh-btn" t-on-click="loadDataAndRenderCharts">
+                            <i class="bi bi-arrow-clockwise"/> Try Again
+                        </button>
+                    </div>
+                </t>
+                <t t-else="">
+                    <!-- KPI Cards Row -->
+                    <div class="kpi-container">
+                        <div class="kpi-card sales">
+                            <div class="kpi-title"><i class="bi bi-currency-dollar"/> Total Sales</div>
+                            <div class="kpi-value" t-esc="formatCurrency(state.kpis.total_sales)"/>
+                            <div t-if="state.kpis.sales_change >= 0" class="kpi-change positive">
+                                <i class="bi bi-arrow-up"/> <span t-esc="`${state.kpis.sales_change}% from last period`"/>
+                            </div>
+                            <div t-else="" class="kpi-change negative">
+                                <i class="bi bi-arrow-down"/> <span t-esc="`${Math.abs(state.kpis.sales_change)}% from last period`"/>
+                            </div>
+                            <div class="kpi-icon"><i class="bi bi-currency-dollar"/></div>
+                        </div>
+
+                        <div class="kpi-card target">
+                            <div class="kpi-title"><i class="bi bi-bullseye"/> Target Achievement</div>
+                            <div class="kpi-value" t-esc="formatPercentage(state.kpis.target_achievement)"/>
+                            <div t-if="state.kpis.target_change >= 0" class="kpi-change positive">
+                                <i class="bi bi-arrow-up"/> <span t-esc="`${state.kpis.target_change}% from target`"/>
+                            </div>
+                            <div t-else="" class="kpi-change negative">
+                                <i class="bi bi-arrow-down"/> <span t-esc="`${Math.abs(state.kpis.target_change)}% below target`"/>
+                            </div>
+                            <div class="kpi-icon"><i class="bi bi-bullseye"/></div>
+                        </div>
+
+                        <div class="kpi-card leads">
+                            <div class="kpi-title"><i class="bi bi-person-plus-fill"/> New Leads</div>
+                            <div class="kpi-value" t-esc="state.kpis.new_leads.toLocaleString()"/>
+                            <div t-if="state.kpis.leads_change >= 0" class="kpi-change positive">
+                                <i class="bi bi-arrow-up"/> <span t-esc="`${state.kpis.leads_change}% growth`"/>
+                            </div>
+                            <div t-else="" class="kpi-change negative">
+                                <i class="bi bi-arrow-down"/> <span t-esc="`${Math.abs(state.kpis.leads_change)}% decline`"/>
+                            </div>
+                            <div class="kpi-icon"><i class="bi bi-person-plus-fill"/></div>
+                        </div>
+
+                        <div class="kpi-card conversion">
+                            <div class="kpi-title"><i class="bi bi-funnel-fill"/> Conversion Rate</div>
+                            <div class="kpi-value" t-esc="formatPercentage(state.kpis.conversion_rate)"/>
+                            <div t-if="state.kpis.conversion_change >= 0" class="kpi-change positive">
+                                <i class="bi bi-arrow-up"/> <span t-esc="`${state.kpis.conversion_change}% improvement`"/>
+                            </div>
+                            <div t-else="" class="kpi-change negative">
+                                <i class="bi bi-arrow-down"/> <span t-esc="`${Math.abs(state.kpis.conversion_change)}% decline`"/>
+                            </div>
+                            <div class="kpi-icon"><i class="bi bi-funnel-fill"/></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="dashboard-grid">
+                        <!-- Full-width Forecast Card -->
+                        <div class="dashboard-card card-forecast">
+                            <div class="card-header">
+                                <h3><i class="bi bi-graph-up"/> Sales Forecast vs Actual</h3>
+                                <div class="card-header-actions">
+                                    <span class="badge bg-primary">12 Months</span>
+                                </div>
+                            </div>
+                            <div class="card-body"><canvas t-ref="forecastChart" height="320"/></div>
+                        </div>
+
+                        <!-- Half-width Cards -->
+                        <div class="dashboard-card card-products">
+                            <div class="card-header">
+                                <h3><i class="bi bi-box-seam"/> Top Performing Products</h3>
+                                <div class="card-header-actions">
+                                    <span class="badge bg-success">Revenue</span>
+                                </div>
+                            </div>
+                            <div class="card-body"><canvas t-ref="productsChart" height="320"/></div>
+                        </div>
+
+                        <div class="dashboard-card card-segments">
+                            <div class="card-header">
+                                <h3><i class="bi bi-people-fill"/> Customer Segments</h3>
+                                <div class="card-header-actions">
+                                    <span class="badge bg-info">Market Share</span>
+                                </div>
+                            </div>
+                            <div class="card-body"><canvas t-ref="segmentsChart" height="320"/></div>
+                        </div>
+
+                        <!-- New Cards -->
+                        <div class="dashboard-card card-salesperson">
+                            <div class="card-header">
+                                <h3><i class="bi bi-person-fill"/> Top Salespeople</h3>
+                                <div class="card-header-actions">
+                                    <span class="badge bg-warning">Performance</span>
+                                </div>
+                            </div>
+                            <div class="card-body"><canvas t-ref="salespeopleChart" height="320"/></div>
+                        </div>
+
+                        <div class="dashboard-card card-lifetime">
+                            <div class="card-header">
+                                <h3><i class="bi bi-piggy-bank-fill"/> Customer Lifetime Value</h3>
+                                <div class="card-header-actions">
+                                    <span class="badge bg-danger">CLV</span>
+                                </div>
+                            </div>
+                            <div class="card-body"><canvas t-ref="lifetimeChart" height="320"/></div>
+                        </div>
+
+                        <div class="dashboard-card card-funnel">
+                            <div class="card-header">
+                                <h3><i class="bi bi-funnel-fill"/> Sales Conversion Funnel</h3>
+                                <div class="card-header-actions">
+                                    <span class="badge bg-secondary">Stages</span>
+                                </div>
+                            </div>
+                            <div class="card-body"><canvas t-ref="funnelChart" height="320"/></div>
+                        </div>
+
+                        <div class="dashboard-card card-yoy">
+                            <div class="card-header">
+                                <h3><i class="bi bi-bar-chart-line-fill"/> Year-over-Year Comparison</h3>
+                                <div class="card-header-actions">
+                                    <span class="badge bg-primary">Growth</span>
+                                </div>
+                            </div>
+                            <div class="card-body"><canvas t-ref="yoyChart" height="320"/></div>
+                        </div>
+                    </div>
+                </t>
+            </div>
+        </div>
+    </t>
+</templates>
